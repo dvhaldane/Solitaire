@@ -11,13 +11,23 @@ public class Game01
 
     int allowance;
 
+    int listLength = 0;
+
+    int highScore = 0;
+
     public Game01()
     {
-        String filePath = "in.txt";
+        String filePath = "C:\\Users\\Haldane\\IdeaProjects\\Solitaire\\src\\in.txt";
 
-        inputFileToOrderedList(filePath);
+        inputFileToLinkedList(filePath);
 
-        findHighFromNode(head);
+        Node temp = head;
+        for (int i = 0; i < listLength; i ++)
+        {
+            recursiveTree(temp, allowance, 0);
+            temp = temp.next;
+        }
+        System.out.println(highScore);
     }
 
     public static void main(String[] args)
@@ -25,7 +35,7 @@ public class Game01
         new Game01();
     }
 
-    private void inputFileToOrderedList(String filePath)
+    private void inputFileToLinkedList(String filePath)
     {
         try
         {
@@ -34,14 +44,13 @@ public class Game01
             BufferedReader br = new BufferedReader(new FileReader(file));
 
             String currentString;
-            int readCount = 0;
+            boolean firstLineWasRead = false;
             while ((currentString = br.readLine()) != null)
             {
-                if (readCount == 0)
+                if (firstLineWasRead == false)
                 {
-
                     allowance = Integer.parseInt(currentString);
-                    System.out.println("Allowance set to " + allowance);
+                    firstLineWasRead = true;
                 }
                 else
                 {
@@ -51,13 +60,9 @@ public class Game01
                     StringTokenizer st = new StringTokenizer(currentString);
                     points = Integer.parseInt(st.nextToken());
                     cost = Integer.parseInt(st.nextToken());
-                    double ratio = (double)points / (double)cost;
-                    System.out.println("Added card p " + points + " cost " + cost + " ratio " + ratio);
                     addCardToList(points, cost);
-
+                    listLength++;
                 }
-
-                readCount++;
             }
         }
         catch (Exception e)
@@ -82,103 +87,42 @@ public class Game01
         }
     }
 
-    private int findMaximumScoreWithAllowance()
+    private void recursiveTree(Node node, int allowance, int score)
     {
-        //Find highest ratio card first
-        Node high = findHighFromNode(head);
-        Node nextHigh = null;
+        Node temp = node;
+        int currentAllowance = allowance;
+        int currentScore = score;
 
-        int currentBalance = allowance;
-        int totalPoints = 0;
-        boolean actionOccurred = true;
-        boolean handleDuplicate = false;
+        //Do the math on the card
 
-        while(actionOccurred)
+        if (node.cost < currentAllowance)
         {
-            actionOccurred = false;
-            handleDuplicate = false;
-
-            double highRatio = high.getRatio();
-
-            Node node = head;
-
-            while (node != null)
+            currentAllowance -= node.cost;
+            currentScore += node.points;
+        }
+        else if (node.cost == currentAllowance)
+        {
+            currentAllowance -= node.cost;
+            currentScore += node.points;
+        }
+        else
+        {
+            if (currentScore > highScore)
             {
-                if (node.getRatio() == high.getRatio())
-                {
-                    //Add all of same ratio and point value
-                    if (node.points == high.points)
-                    {
-                        if (node.cost <= currentBalance)
-                        {
-                            totalPoints += node.points;
-                            currentBalance -= node.cost;
-                            node = node.next;
-                        }
-                    }
-                    //Add all of same ratio and lesser point value
-                    else if (node.points < high.points)
-                    {
-                        if (nextHigh == null)
-                        {
-                            nextHigh = node;
-                            handleDuplicate = true;
-                        }
-                        else
-                        {
-                            //Always choose the highest point value from sets of duplicate ratios with lower points than the high
-                            if (node.points > nextHigh.points)
-                            {
-                                nextHigh = null;
-                                handleDuplicate = true;
-                            }
-                        }
-
-                    }
-                }
-                else
-                {
-                    if (handleDuplicate == false)
-                    {
-
-                    }
-                }
+                highScore = currentScore;
+                return;
+            }
+            else
+            {
+                return;
             }
         }
 
-    }
-
-    private Node findHighFromNode(Node node)
-    {
-        Node high = node;
-        Node current = head;
-
-        while (current.next != null)
+        while (temp.next != null)
         {
-
-            double currentRatio = current.getRatio();
-            double highRatio = high.getRatio();
-
-            //If the current card ratio is higher than the high, set high to current
-            if (currentRatio > highRatio)
-            {
-                high = current;
-            }
-            //If the current card ratio is the same as the high, but has higher points, set high to current
-            else if (currentRatio == highRatio)
-            {
-                if (current.next.points > high.points)
-                {
-                    high = current;
-                }
-            }
-
-            current = current.next;
+            temp = temp.next;
+            recursiveTree(temp, currentAllowance, currentScore);
         }
-
-        System.out.println("The high is " + high.points + " " + high.cost);
-
-        return high;
     }
 
     static class Node
@@ -196,11 +140,6 @@ public class Game01
         public void setNextRef(Node node)
         {
             this.next = node;
-        }
-
-        public double getRatio()
-        {
-            return (double)cost / (double)points;
         }
     }
 }
