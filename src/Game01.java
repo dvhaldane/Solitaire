@@ -17,13 +17,15 @@ public class Game01
 
     public Game01()
     {
-        String filePath = "C:\\Users\\Haldane\\IdeaProjects\\Solitaire\\src\\in.txt";
+        //File must be stored in project root directory
+        String filePath = "in.txt";
 
         inputFileToLinkedList(filePath);
 
         Node temp = head;
         for (int i = 0; i < listLength; i ++)
         {
+
             recursiveTree(temp, allowance, 0);
             temp = temp.next;
         }
